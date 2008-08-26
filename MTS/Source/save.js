@@ -5,17 +5,28 @@ function mtsConvertToUTF8(z)
     return z? convertUnicodeToUTF8(z) : z;
 }
 
-function saveChanges(onlyIfDirty,tiddlers)
+var autoSaveDelay = 60 * 1000 /* ms */ ;
+
+function saveChanges(onlyIfDirty,tiddlers,autoSave)
 {
-	if(onlyIfDirty && !store.isDirty() && !store.uploadError)
+    if (autoSave == undefined) {
+        autoSave = false;
+    }
+    if (!autoSave && 
+	   onlyIfDirty && !store.isDirty() && !store.uploadError)
 		return;
 	
     if (loggedIn != true) {
-        alert("Please log in before saving this wiki");
+	autoSave || alert("Please log in before saving this wiki");
         return false;
     }
     
-    singleMessage("Saving...");
+    if (!autoSave ||
+        !onlyIfDirty ||
+	store.isDirty() ||
+	store.uploadError) {
+	singleMessage("Saving...");
+    }
     
     // SEND INFO //
         var params = {
@@ -31,7 +42,7 @@ function saveChanges(onlyIfDirty,tiddlers)
         // Handle for extending // 
         params = alterSaveParams(params);
         
-        if ( params.data == "" && params.deletedTiddlers == "") {
+        if (!autoSave && params.data == "" && params.deletedTiddlers == "") {
             displayMessage("There was nothing to save");
             return;
         }
@@ -40,7 +51,15 @@ function saveChanges(onlyIfDirty,tiddlers)
         resetTiddlersMarkedForUpload();
         saveAjaxRequest(savepath, saveReturn, {backup:config.options.chkSaveBackups}, params);
         postSave();
+
+	if (autoSave) {
+	    window.setTimeout(function () { saveChanges(true, 0, true); } ,
+	                      autoSaveDelay);
+	}
 }
+
+window.setTimeout(function () { saveChanges(true, 0, true); } , 
+                  autoSaveDelay);
 
 function alterSaveParams(params) {
     return params;
@@ -76,7 +95,6 @@ function saveReturn(response) {
     }
     
     else if ( response.nothing ) {
-        displayMessage("There was nothing to save");
         store.uploadError = false;
     }
 
