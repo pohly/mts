@@ -19,23 +19,30 @@
 
 //////////////////////////////////////////////////////////////////////////////// */
 
-function Response(rawData) {
-    
+function Response(rawData, ignoreError) {
+
+    if (ignoreError == undefined) {
+        ignoreError = false;
+    }
     var data = null;
     
     try {
         eval (rawData);
     }
     catch (e) {
-        displayMessage("Parsing Error! ~ The server's response was corrupted");
-        alert(rawData);
+        if (!ignoreError) {
+	    displayMessage("Parsing Error! ~ The server's response was corrupted");
+            alert(rawData);
+	}
         this.error = true;
         return;
     }
     
     if ( data ) {
         if ( data.error ) {
-            displayMessage("Server Error! ~ "+data.message);
+            if (!ignoreError) {
+	        displayMessage("Server Error! ~ "+data.message);
+	    }
             this.error = true;
             this.errorMessage = data.message;
         }
@@ -52,27 +59,36 @@ function Response(rawData) {
         }
     }
     else {
-        displayMessage("Parsing Error! ~ The server's response was corrupted");
-        alert(rawData);
+        if (!ignoreError) {
+	    displayMessage("Parsing Error! ~ The server's response was corrupted");
+            alert(rawData);
+        }
         this.error = true;
         return;
     }
 }
 
 
-function AjaxRequest(url, callback, getParams, postParams) {
+function AjaxRequest(url, callback, getParams, postParams, ignoreError) {
     
     var cb = callback;
+    var ie = ignoreError;
+    if (ie == undefined) {
+        ie = false;
+    }
     
     this.url = url;
     this.getParams = getParams;
     this.postParams = postParams;
     this.callback = function (rawData) {
-        var response = new Response(rawData);
+        var response = new Response(rawData, ie);
         if ( !response.error )
             cb(response);
-        else
-           cb({error:true});
+        else {
+	   if (!ie) {
+               cb({error:true});
+	   }
+        }
     }
 }
 

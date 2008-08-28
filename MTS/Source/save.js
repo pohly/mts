@@ -41,15 +41,16 @@ function saveChanges(onlyIfDirty,tiddlers,autoSave)
         
         // Handle for extending // 
         params = alterSaveParams(params);
-        
-        if (!autoSave && params.data == "" && params.deletedTiddlers == "") {
+       
+        haveChanges = params.data != "" || params.deletedTiddlers != "";
+        if (!autoSave && !haveChanges) {
             displayMessage("There was nothing to save");
             return;
         }
         
         //reset tiddlers that were marked for upload
         resetTiddlersMarkedForUpload();
-        saveAjaxRequest(savepath, saveReturn, {backup:config.options.chkSaveBackups}, params);
+        saveAjaxRequest(savepath, saveReturn, {backup:config.options.chkSaveBackups}, params, !haveChanges);
         postSave();
 
 	if (autoSave) {
@@ -70,8 +71,8 @@ function resetTiddlersMarkedForUpload () {
     store.unFlagForUpload(store.updatedTiddlersIndex);
 }
 
-function saveAjaxRequest(savepath, saveReturn, getParams, postParams) {
-    var saveRequest = new AjaxRequest(savepath, saveReturn, getParams, postParams);
+function saveAjaxRequest(savepath, saveReturn, getParams, postParams, ignoreError) {
+    var saveRequest = new AjaxRequest(savepath, saveReturn, getParams, postParams, ignoreError);
         saveRequest.send();
 }
 
