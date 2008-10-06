@@ -52,7 +52,7 @@
         $subfolders = array(
             'minutely' => 'i',
             'hourly' =>   'H',
-            'daily'     => 'd_D',
+            'daily'     => 'd',
             'weekly'    => 'W',
             'monthly'   => 'm_M',
             'yearly'    => 'Y'
