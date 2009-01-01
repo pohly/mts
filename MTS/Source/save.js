@@ -7,11 +7,13 @@ function mtsConvertToUTF8(z)
 
 var autoSaveDelay = 60 * 1000 /* ms */ ;
 
-function saveChanges(onlyIfDirty,tiddlers,autoSave)
+function saveChangesAuto()
 {
-    if (autoSave == undefined) {
-        autoSave = false;
-    }
+    saveChangesFull(true, 0, true);
+}
+
+function saveChangesFull(onlyIfDirty,tiddlers,autoSave)
+{
     if (!autoSave && 
 	   onlyIfDirty && !store.isDirty() && !store.uploadError)
 		return;
@@ -54,12 +56,17 @@ function saveChanges(onlyIfDirty,tiddlers,autoSave)
         postSave();
 
 	if (autoSave) {
-	    window.setTimeout(function () { saveChanges(true, 0, true); } ,
+	    window.setTimeout(saveChangesAuto,
 	                      autoSaveDelay);
 	}
 }
 
-window.setTimeout(function () { saveChanges(true, 0, true); } , 
+function saveChanges(onlyIfDirty,tiddlers)
+{
+    saveChangesFull(onlyIfDirty, tiddlers, false);
+}
+
+window.setTimeout(saveChangesAuto,
                   autoSaveDelay);
 
 function alterSaveParams(params) {
